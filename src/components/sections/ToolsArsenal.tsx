@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Terminal, Wrench } from "lucide-react";
 import { Reveal, SectionHeading } from "@/components/ui/primitives";
@@ -19,37 +19,31 @@ const tools: { name: string; use: string }[] = [
 ];
 
 type Line = { text: string; cls?: string };
-
 const PROMPT = "zeel@cybernexora:~$";
 
-// command handlers -> return array of output lines
 function runCommand(raw: string): Line[] {
   const cmd = raw.trim();
   const lower = cmd.toLowerCase();
   if (!cmd) return [];
 
-  if (lower === "help") {
+  if (lower === "help")
     return [
       { text: "Available commands:", cls: "text-primary" },
-      { text: "  help        show this menu" },
-      { text: "  whoami      who am I" },
-      { text: "  ls          list available tools" },
-      { text: "  about       about Zeel Kumbhani" },
-      { text: "  services    what I offer" },
-      { text: "  scan        run a demo security scan" },
-      { text: "  nmap        sample nmap output" },
-      { text: "  contact     how to reach me" },
-      { text: "  clear       clear the screen" },
+      { text: "  help      → show this menu" },
+      { text: "  whoami    → who am I" },
+      { text: "  ls        → list available tools" },
+      { text: "  about     → about Zeel Kumbhani" },
+      { text: "  services  → what I offer" },
+      { text: "  scan      → run a demo security scan" },
+      { text: "  nmap      → sample nmap output" },
+      { text: "  contact   → how to reach me" },
+      { text: "  clear     → clear the screen" },
     ];
-  }
   if (lower === "whoami")
     return [{ text: "cybersecurity-consultant", cls: "text-green-400" }];
-
-  if (lower === "ls" || lower === "ls -la" || lower === "ls tools") {
+  if (lower === "ls" || lower.startsWith("ls ")) {
     const out: Line[] = [{ text: "tools/", cls: "text-primary" }];
-    tools.forEach((t) =>
-      out.push({ text: `  ${t.name.padEnd(18, " ")} ${t.use}` })
-    );
+    tools.forEach((t) => out.push({ text: `  ${t.name.padEnd(18, " ")} ${t.use}` }));
     return out;
   }
   if (lower === "about")
@@ -70,7 +64,7 @@ function runCommand(raw: string): Line[] {
       { text: "site    : zeelkumbhani.com" },
       { text: "Book a consultation from the menu above." },
     ];
-  if (lower === "nmap" || lower.startsWith("nmap ")) {
+  if (lower === "nmap" || lower.startsWith("nmap "))
     return [
       { text: "Starting Nmap scan ...", cls: "text-muted-foreground" },
       { text: "PORT     STATE  SERVICE", cls: "text-primary" },
@@ -79,8 +73,7 @@ function runCommand(raw: string): Line[] {
       { text: "443/tcp  open   https" },
       { text: "Scan complete · 3 open ports found", cls: "text-green-400" },
     ];
-  }
-  if (lower === "scan") {
+  if (lower === "scan")
     return [
       { text: "[*] Enumerating target ...", cls: "text-muted-foreground" },
       { text: "[*] Testing OWASP Top 10 (manual) ...", cls: "text-muted-foreground" },
@@ -88,30 +81,71 @@ function runCommand(raw: string): Line[] {
       { text: "[+] Validated with PoC · risk: HIGH", cls: "text-amber-400" },
       { text: "[✓] Report generated · 0 false positives", cls: "text-green-400" },
     ];
-  }
   if (lower === "clear") return [{ text: "__CLEAR__" }];
-
   if (lower === "sudo" || lower.startsWith("sudo "))
     return [{ text: "Nice try 😏 — authorised testing only.", cls: "text-amber-400" }];
-
-  // not found
   return [
     { text: `command not found: ${cmd}`, cls: "text-red-400" },
     { text: "type 'help' to see available commands.", cls: "text-muted-foreground" },
   ];
 }
 
+// short beep using Web Audio (no files needed)
+function useBeep() {
+  const ctxRef = useRef<AudioContext | null>(null);
+  return useCallback((on: boolean) => {
+    if (!on) return;
+    try {
+      if (!ctxRef.current)
+        ctxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const ac = ctxRef.current;
+      const o = ac.createOscillator();
+      const g = ac.createGain();
+      o.type = "square";
+      o.frequency.value = 520 + Math.random() * 120;
+      g.gain.value = 0.015;
+      o.connect(g);
+      g.connect(ac.destination);
+      o.start();
+      o.stop(ac.currentTime + 0.012);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+}
+
 export default function ToolsArsenal() {
-  const [history, setHistory] = useState<Line[]>([
-    { text: `${PROMPT} whoami` },
-    { text: "cybersecurity-consultant", cls: "text-green-400" },
-    { text: `${PROMPT} cat ./focus.txt` },
-    { text: "manual VAPT · real exploitation · clear reports" },
-    { text: `${PROMPT} type 'help' to begin`, cls: "text-muted-foreground" },
-  ]);
+  const [history, setHistory] = useState<Line[]>([]);
   const [input, setInput] = useState("");
+  const [booted, setBooted] = useState(false);
+  const [soundOn, setSoundOn] = useState(false);
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const beep = useBeep();
+
+  // boot sequence (auto types) on first view
+  useEffect(() => {
+    const boot: Line[] = [
+      { text: "[ booting CyberNexora secure shell ]", cls: "text-primary" },
+      { text: "loading modules ... ok", cls: "text-muted-foreground" },
+      { text: "auth: key accepted ✓", cls: "text-green-400" },
+      { text: `${PROMPT} whoami` },
+      { text: "cybersecurity-consultant", cls: "text-green-400" },
+      { text: `${PROMPT} cat ./focus.txt` },
+      { text: "manual VAPT · real exploitation · clear reports" },
+      { text: "type 'help' to begin ▸", cls: "text-muted-foreground" },
+    ];
+    let i = 0;
+    const id = setInterval(() => {
+      setHistory((h) => [...h, boot[i]]);
+      i++;
+      if (i >= boot.length) {
+        clearInterval(id);
+        setBooted(true);
+      }
+    }, 320);
+    return () => clearInterval(id);
+  }, []);
 
   const submit = (value: string) => {
     const out = runCommand(value);
@@ -133,14 +167,13 @@ export default function ToolsArsenal() {
         <SectionHeading
           eyebrow="The Arsenal"
           title={<>Tools I use on <span className="gradient-text">real engagements</span></>}
-          subtitle="An industry-standard offensive-security toolkit — the same stack used by professional penetration testers on Kali Linux — applied ethically and with authorisation. Try the terminal: type 'help'."
+          subtitle="An industry-standard offensive-security toolkit — the same stack used on Kali Linux, applied ethically and with authorisation. Try the live terminal: type 'help'."
         />
 
         <div className="mt-12 grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-          {/* interactive terminal */}
           <Reveal>
             <div
-              className="overflow-hidden rounded-2xl border border-primary/20 bg-[#0a0e16] shadow-2xl"
+              className="group overflow-hidden rounded-2xl border border-primary/25 bg-[#080b12] shadow-2xl shadow-primary/5 transition-shadow hover:shadow-primary/20"
               onClick={() => inputRef.current?.focus()}
             >
               <div className="flex items-center gap-2 border-b border-white/5 bg-white/5 px-4 py-2.5">
@@ -150,41 +183,63 @@ export default function ToolsArsenal() {
                 <span className="ml-3 flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
                   <Terminal size={12} /> zeel@cybernexora: ~
                 </span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSoundOn((s) => !s);
+                  }}
+                  className="ml-auto font-mono text-[10px] text-muted-foreground transition-colors hover:text-primary"
+                >
+                  {soundOn ? "🔊 sound on" : "🔇 sound off"}
+                </button>
               </div>
+
               <div
                 ref={bodyRef}
-                className="h-[340px] space-y-1 overflow-y-auto p-5 font-mono text-[13px] leading-relaxed"
+                className="terminal-scan relative h-[340px] space-y-1 overflow-y-auto p-5 font-mono text-[13px] leading-relaxed"
               >
                 {history.map((l, i) => (
-                  <div key={i} className={l.cls ?? "text-foreground"}>
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.15 }}
+                    className={l.cls ?? "text-foreground"}
+                  >
                     {l.text}
-                  </div>
+                  </motion.div>
                 ))}
-                {/* live input line */}
-                <div className="flex items-center gap-2">
-                  <span className="shrink-0 text-green-400">{PROMPT}</span>
-                  <input
-                    ref={inputRef}
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        submit(input);
-                        setInput("");
-                      }
-                    }}
-                    spellCheck={false}
-                    autoComplete="off"
-                    className="flex-1 bg-transparent text-foreground caret-primary outline-none"
-                    placeholder="type a command…"
-                    aria-label="terminal input"
-                  />
-                </div>
+
+                {booted && (
+                  <div className="flex items-center gap-2">
+                    <span className="shrink-0 text-green-400 drop-shadow-[0_0_4px_rgba(52,211,153,0.5)]">
+                      {PROMPT}
+                    </span>
+                    <input
+                      ref={inputRef}
+                      value={input}
+                      onChange={(e) => {
+                        setInput(e.target.value);
+                        beep(soundOn);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          submit(input);
+                          setInput("");
+                        }
+                      }}
+                      spellCheck={false}
+                      autoComplete="off"
+                      className="flex-1 bg-transparent text-primary caret-primary outline-none placeholder:text-muted-foreground/50"
+                      placeholder="type 'help' …"
+                      aria-label="terminal input"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </Reveal>
 
-          {/* tools grid */}
           <Reveal delay={0.1}>
             <div className="glass-card h-full p-6">
               <p className="mb-4 flex items-center gap-2 text-sm font-semibold text-foreground">
