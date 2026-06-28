@@ -1,10 +1,9 @@
 import { useEffect, useRef } from "react";
 
 /**
- * "Global Threat Grid" — a slow rotating wireframe globe with city nodes and
- * worldwide attack arcs travelling across it, plus a soft AI scan sweep.
- * Dark, premium, non-distracting — sits behind text on every page.
- * Same component name + props as before.
+ * Globe + Matrix rain: a slow rotating wireframe globe with worldwide attack
+ * arcs, layered over soft falling 0/1 binary "matrix" code. Dark & premium.
+ * Same component name + props.
  */
 export default function MatrixRain({
   className = "",
@@ -33,7 +32,12 @@ export default function MatrixRain({
     let w = 0, h = 0, raf = 0, running = true, frame = 0;
     let cx = 0, cy = 0, R = 0;
 
-    // sphere points (lat/lon grid) -> globe + city nodes
+    // ---- matrix rain columns (binary 0/1) ----
+    type Drop = { x: number; y: number; sp: number; chars: string[] };
+    let drops: Drop[] = [];
+    const fontSize = 14;
+
+    // ---- globe ----
     type P3 = { x: number; y: number; z: number };
     const grid: P3[] = [];
     const cities: P3[] = [];
@@ -49,7 +53,6 @@ export default function MatrixRain({
     };
     for (let i = 1; i < LAT; i++)
       for (let j = 0; j < LON; j++) grid.push(sph(i / LAT, j / LON));
-    // a handful of "city" hubs
     const cityCoords: [number, number][] = [
       [0.30, 0.10], [0.34, 0.18], [0.40, 0.05], [0.38, 0.55],
       [0.45, 0.62], [0.32, 0.78], [0.50, 0.30], [0.55, 0.85],
@@ -59,7 +62,6 @@ export default function MatrixRain({
 
     type Arc = { a: number; b: number; t: number; sp: number; hue: string };
     let arcs: Arc[] = [];
-    let scanY = 0;
 
     const setup = () => {
       const parent = canvas.parentElement;
@@ -75,6 +77,16 @@ export default function MatrixRain({
       cy = h * 0.5;
       R = Math.min(w, h) * 0.42;
       arcs = [];
+
+      const cols = Math.floor((w / fontSize) * density);
+      drops = Array.from({ length: cols }, (_, i) => ({
+        x: i * fontSize * (1 / density),
+        y: Math.random() * h,
+        sp: (0.6 + Math.random() * 1.2) * speed,
+        chars: Array.from({ length: 6 + ((Math.random() * 8) | 0) }, () =>
+          Math.random() > 0.5 ? "1" : "0"
+        ),
+      }));
     };
 
     const rot = (p: P3, ay: number) => {
@@ -86,11 +98,7 @@ export default function MatrixRain({
       const z2 = p.y * Math.sin(tilt) + z1 * Math.cos(tilt);
       return { x: x1, y: y1, z: z2 };
     };
-    const project = (p: P3) => ({
-      x: cx + p.x * R,
-      y: cy + p.y * R,
-      z: p.z,
-    });
+    const project = (p: P3) => ({ x: cx + p.x * R, y: cy + p.y * R, z: p.z });
 
     const spawnArc = () => {
       if (cities.length < 2) return;
@@ -110,17 +118,37 @@ export default function MatrixRain({
       frame++;
       const ay = frame * 0.0016 * speed;
 
-      // globe wireframe dots (depth-faded)
+      // 1) falling binary matrix (behind everything)
+      ctx.font = `${fontSize}px monospace`;
+      for (const d of drops) {
+        d.y += d.sp;
+        if (d.y - d.chars.length * fontSize > h) {
+          d.y = -Math.random() * 80;
+          if (Math.random() > 0.6)
+            d.chars = Array.from({ length: 6 + ((Math.random() * 8) | 0) }, () =>
+              Math.random() > 0.5 ? "1" : "0"
+            );
+        }
+        for (let k = 0; k < d.chars.length; k++) {
+          const yy = d.y - k * fontSize;
+          if (yy < 0 || yy > h) continue;
+          // head is brightest, tail fades
+          const a = k === 0 ? 0.45 : Math.max(0, 0.22 - k * 0.03);
+          ctx.fillStyle = `rgba(${ACCENT}, ${a.toFixed(3)})`;
+          ctx.fillText(d.chars[k], d.x, yy);
+        }
+      }
+
+      // 2) globe wireframe dots
       for (const g of grid) {
         const r = rot(g, ay);
         const p = project(r);
-        const front = (r.z + 1) / 2; // 0 back .. 1 front
+        const front = (r.z + 1) / 2;
         ctx.fillStyle = `rgba(${ACCENT}, ${(0.04 + front * 0.10).toFixed(3)})`;
         ctx.beginPath();
         ctx.arc(p.x, p.y, 0.9, 0, Math.PI * 2);
         ctx.fill();
       }
-
       // outer ring
       ctx.strokeStyle = `rgba(${ACCENT}, 0.08)`;
       ctx.lineWidth = 1;
@@ -131,24 +159,22 @@ export default function MatrixRain({
       // city nodes
       const cproj = cities.map((c) => project(rot(c, ay)));
       for (const c of cproj) {
-        const front = (c.z + 1) / 2;
         if (c.z < -0.2) continue;
+        const front = (c.z + 1) / 2;
         ctx.fillStyle = `rgba(${ACCENT}, ${(0.3 + front * 0.5).toFixed(3)})`;
         ctx.beginPath();
         ctx.arc(c.x, c.y, 1.6, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      // attack arcs between cities
+      // 3) attack arcs
       const maxArcs = Math.round(6 * density) + 3;
       if (frame % 24 === 0 && arcs.length < maxArcs) spawnArc();
       arcs = arcs.filter((arc) => {
         const A = cproj[arc.a], B = cproj[arc.b];
         if (!A || !B) return false;
         arc.t += arc.sp;
-        // lift control point for a curved arc
-        const mx = (A.x + B.x) / 2;
-        const my = (A.y + B.y) / 2;
+        const mx = (A.x + B.x) / 2, my = (A.y + B.y) / 2;
         const lift = Math.hypot(B.x - A.x, B.y - A.y) * 0.3;
         const C = { x: mx, y: my - lift };
         const qp = (tt: number) => {
@@ -158,17 +184,14 @@ export default function MatrixRain({
             y: u * u * A.y + 2 * u * tt * C.y + tt * tt * B.y,
           };
         };
-        // faint full path
         ctx.strokeStyle = `rgba(${arc.hue}, 0.08)`;
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(A.x, A.y);
         ctx.quadraticCurveTo(C.x, C.y, B.x, B.y);
         ctx.stroke();
-        // travelling head
         const t = Math.min(arc.t, 1);
-        const e = qp(t);
-        const s = qp(Math.max(0, t - 0.1));
+        const e = qp(t), s = qp(Math.max(0, t - 0.1));
         const grad = ctx.createLinearGradient(s.x, s.y, e.x, e.y);
         grad.addColorStop(0, `rgba(${arc.hue}, 0)`);
         grad.addColorStop(1, `rgba(${arc.hue}, 0.85)`);
@@ -187,16 +210,6 @@ export default function MatrixRain({
         ctx.fill();
         return arc.t < 1.05;
       });
-
-      // soft AI scan sweep
-      scanY += 0.7 * speed;
-      if (scanY > h) scanY = 0;
-      const sg = ctx.createLinearGradient(0, scanY - 30, 0, scanY + 30);
-      sg.addColorStop(0, `rgba(${ACCENT}, 0)`);
-      sg.addColorStop(0.5, `rgba(${ACCENT}, 0.04)`);
-      sg.addColorStop(1, `rgba(${ACCENT}, 0)`);
-      ctx.fillStyle = sg;
-      ctx.fillRect(0, scanY - 30, w, 60);
 
       raf = requestAnimationFrame(draw);
     };
