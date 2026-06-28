@@ -129,15 +129,21 @@ export default function Hero() {
           />
 
           {/* floating chips */}
-          <div className="glass-card absolute left-0 top-16 z-20 flex items-center gap-2 rounded-xl p-3 animate-float">
+          {/* <div className="glass-card absolute left-0 top-16 z-20 flex items-center gap-2 rounded-xl p-3 animate-float"> */}
+                    <div className="glass-card absolute left-0 top-16 z-20 hidden lg:flex items-center gap-2 rounded-xl p-3 animate-float">
+
             <Lock size={16} className="text-primary" />
             <span className="text-xs font-medium">VAPT</span>
           </div>
-          <div className="glass-card absolute right-0 top-1/3 z-20 flex items-center gap-2 rounded-xl p-3 animate-float-slow">
+          {/* <div className="glass-card absolute right-0 top-1/3 z-20 flex items-center gap-2 rounded-xl p-3 animate-float-slow"> */}
+                    <div className="glass-card absolute right-0 top-1/3 z-20 hidden lg:flex items-center gap-2 rounded-xl p-3 animate-float-slow">
+
             <Zap size={16} className="text-accent" />
             <span className="text-xs font-medium">Incident Response</span>
           </div>
-          <div className="glass-card absolute bottom-8 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full px-4 py-2 backdrop-blur-xl">
+          {/* <div className="glass-card absolute bottom-8 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full px-4 py-2 backdrop-blur-xl"> */}
+                    <div className="glass-card absolute bottom-8 left-1/2 z-20 hidden lg:flex -translate-x-1/2 items-center gap-2 rounded-full px-4 py-2 backdrop-blur-xl">
+
             <Cpu size={14} className="text-primary" />
             <span className="text-xs font-semibold uppercase tracking-wider gradient-text">
               {siteConfig.brandTagline}
