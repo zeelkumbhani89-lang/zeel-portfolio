@@ -1,11 +1,12 @@
 import { useEffect, useRef } from "react";
 
 /**
- * "AI Threat Grid" background — layered for a high-tech hacker vibe:
- *  • faint data-stream columns (AI processing feel)
- *  • world threat-map hubs with travelling attack arcs (cyan / red / violet)
- *  • a slow horizontal scan sweep + occasional glitch flicker
- * Same component name + props, drops in everywhere already used.
+ * "AI Sentinel" background — a single cinematic cyber scene:
+ *  • a rotating 3D wireframe head (AI / deepfake identity)
+ *  • scanning sweep analysing the face (biometric / detection)
+ *  • incoming attack arcs that get intercepted by a protective shield pulse
+ *  • faint data-stream glyphs for ambience
+ * Same component name + props — drops in everywhere already used.
  */
 export default function MatrixRain({
   className = "",
@@ -28,29 +29,46 @@ export default function MatrixRain({
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    const CITIES: [number, number][] = [
-      [0.12, 0.34], [0.17, 0.42], [0.22, 0.30], [0.27, 0.55],
-      [0.30, 0.68], [0.33, 0.40], [0.20, 0.50],
-      [0.47, 0.30], [0.50, 0.38], [0.52, 0.26], [0.55, 0.45],
-      [0.49, 0.55], [0.53, 0.62],
-      [0.62, 0.36], [0.68, 0.42], [0.72, 0.33], [0.66, 0.50],
-      [0.74, 0.55], [0.78, 0.40], [0.82, 0.60], [0.70, 0.28],
-      [0.84, 0.66], [0.60, 0.30], [0.58, 0.52],
-    ];
-
     const ACCENT = color;
     const RED = "248, 113, 113";
     const VIOLET = "139, 92, 246";
-    const glyphs = "01ｱｲｳｴｵｶ<>/{}[]#$%XYZ█▓".split("");
+    const GREEN = "52, 211, 153";
+    const glyphs = "01ｱｲｳｴｵｶ<>/{}[]#$%".split("");
 
     let w = 0, h = 0, raf = 0, running = true, frame = 0;
-    let pts: { x: number; y: number }[] = [];
-    type Arc = { from: number; to: number; t: number; sp: number; hue: string };
+    let cx = 0, cy = 0, R = 0;
+
+    // --- build a simple 3D head point cloud (sphere + jaw taper) ---
+    type P3 = { x: number; y: number; z: number };
+    const verts: P3[] = [];
+    const edges: [number, number][] = [];
+    const LAT = 9, LON = 14;
+    for (let i = 0; i <= LAT; i++) {
+      const theta = (i / LAT) * Math.PI; // 0..PI
+      for (let j = 0; j < LON; j++) {
+        const phi = (j / LON) * Math.PI * 2;
+        let x = Math.sin(theta) * Math.cos(phi);
+        let y = Math.cos(theta);
+        let z = Math.sin(theta) * Math.sin(phi);
+        // taper lower half into a chin (face-like)
+        if (y < 0) { x *= 1 + y * 0.35; z *= 1 + y * 0.35; y *= 1.18; }
+        verts.push({ x, y, z });
+      }
+    }
+    const idx = (i: number, j: number) => i * LON + (j % LON);
+    for (let i = 0; i < LAT; i++) {
+      for (let j = 0; j < LON; j++) {
+        edges.push([idx(i, j), idx(i, j + 1)]);
+        edges.push([idx(i, j), idx(i + 1, j)]);
+      }
+    }
+
+    type Arc = { ang: number; dist: number; t: number; sp: number; hue: string; blocked: boolean };
     let arcs: Arc[] = [];
     type Col = { x: number; y: number; sp: number; ch: string };
     let cols: Col[] = [];
-    let scan = 0;
-    let glitch = 0;
+    let scanA = 0;
+    let shield = 0; // shield pulse intensity
 
     const setup = () => {
       const parent = canvas.parentElement;
@@ -62,150 +80,167 @@ export default function MatrixRain({
       canvas.style.width = w + "px";
       canvas.style.height = h + "px";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      pts = CITIES.map(([nx, ny]) => ({ x: nx * w, y: ny * h }));
+      cx = w * 0.5;
+      cy = h * 0.5;
+      R = Math.min(w, h) * 0.26;
       arcs = [];
-      // sparse falling data glyph columns
-      const n = Math.max(8, Math.round((w / 60) * density));
+      const n = Math.max(6, Math.round((w / 70) * density));
       cols = Array.from({ length: n }, () => ({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        sp: (0.4 + Math.random() * 0.9) * speed,
+        x: Math.random() * w, y: Math.random() * h,
+        sp: (0.4 + Math.random() * 0.8) * speed,
         ch: glyphs[(Math.random() * glyphs.length) | 0],
       }));
-      scan = 0;
     };
 
     const spawnArc = () => {
-      if (pts.length < 2) return;
-      const from = (Math.random() * pts.length) | 0;
-      let to = (Math.random() * pts.length) | 0;
-      if (to === from) to = (to + 1) % pts.length;
-      const palette = [ACCENT, ACCENT, RED, VIOLET, ACCENT];
+      const palette = [RED, RED, VIOLET, ACCENT];
       arcs.push({
-        from, to, t: 0,
-        sp: (0.006 + Math.random() * 0.012) * speed,
+        ang: Math.random() * Math.PI * 2,
+        dist: Math.max(w, h) * 0.6,
+        t: 0,
+        sp: (0.008 + Math.random() * 0.012) * speed,
         hue: palette[(Math.random() * palette.length) | 0],
+        blocked: false,
       });
-    };
-
-    const qp = (a: any, c: any, b: any, tt: number) => {
-      const u = 1 - tt;
-      return {
-        x: u * u * a.x + 2 * u * tt * c.x + tt * tt * b.x,
-        y: u * u * a.y + 2 * u * tt * c.y + tt * tt * b.y,
-      };
     };
 
     const draw = () => {
       if (!running) return;
       ctx.clearRect(0, 0, w, h);
       frame++;
+      const time = frame * 0.01;
 
-      // 1) faint AI data-stream glyph columns
+      // 1) ambient data glyph columns
       ctx.font = "12px monospace";
       for (const c of cols) {
         c.y += c.sp;
-        if (c.y > h + 14) {
-          c.y = -14;
-          c.x = Math.random() * w;
-          c.ch = glyphs[(Math.random() * glyphs.length) | 0];
-        }
-        if (Math.random() > 0.92) c.ch = glyphs[(Math.random() * glyphs.length) | 0];
-        ctx.fillStyle = `rgba(${ACCENT}, 0.10)`;
+        if (c.y > h + 14) { c.y = -14; c.x = Math.random() * w; }
+        if (Math.random() > 0.94) c.ch = glyphs[(Math.random() * glyphs.length) | 0];
+        ctx.fillStyle = `rgba(${ACCENT}, 0.08)`;
         ctx.fillText(c.ch, c.x, c.y);
       }
 
-      // 2) threat-map hubs
-      for (const p of pts) {
-        ctx.fillStyle = `rgba(${ACCENT}, 0.5)`;
+      // 2) rotating 3D wireframe head
+      const ay = time * 0.6;            // yaw
+      const ax = Math.sin(time * 0.4) * 0.25; // slight nod
+      const cosY = Math.cos(ay), sinY = Math.sin(ay);
+      const cosX = Math.cos(ax), sinX = Math.sin(ax);
+      const proj = verts.map((v) => {
+        let x = v.x, y = v.y, z = v.z;
+        // rotate Y
+        let x1 = x * cosY - z * sinY;
+        let z1 = x * sinY + z * cosY;
+        // rotate X
+        let y1 = y * cosX - z1 * sinX;
+        let z2 = y * sinX + z1 * cosX;
+        const persp = 1 / (1 + z2 * 0.35);
+        return { x: cx + x1 * R * persp, y: cy + y1 * R * persp, z: z2, persp };
+      });
+
+      for (const [a, b] of edges) {
+        const p = proj[a], q = proj[b];
+        const depth = (p.z + q.z) / 2; // -1..1
+        const alpha = 0.06 + (depth + 1) * 0.10; // front brighter
+        ctx.strokeStyle = `rgba(${ACCENT}, ${alpha.toFixed(3)})`;
+        ctx.lineWidth = depth > 0 ? 1.1 : 0.6;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 1.6, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = `rgba(${ACCENT}, 0.07)`;
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(q.x, q.y);
+        ctx.stroke();
+      }
+      // node points
+      for (const p of proj) {
+        if (p.z < 0) continue;
+        ctx.fillStyle = `rgba(${ACCENT}, ${(0.2 + p.z * 0.4).toFixed(3)})`;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, 1.1, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      // 3) attack arcs
-      const maxArcs = Math.round(7 * density) + 4;
-      if (frame % 20 === 0 && arcs.length < maxArcs) spawnArc();
+      // 3) biometric scan sweep across the face
+      scanA += 0.9 * speed;
+      const sy = cy - R + ((scanA % (R * 2)));
+      const sg = ctx.createLinearGradient(0, sy - 16, 0, sy + 16);
+      sg.addColorStop(0, `rgba(${GREEN}, 0)`);
+      sg.addColorStop(0.5, `rgba(${GREEN}, 0.10)`);
+      sg.addColorStop(1, `rgba(${GREEN}, 0)`);
+      ctx.fillStyle = sg;
+      ctx.fillRect(cx - R * 1.3, sy - 16, R * 2.6, 32);
+      ctx.strokeStyle = `rgba(${GREEN}, 0.25)`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(cx - R * 1.3, sy);
+      ctx.lineTo(cx + R * 1.3, sy);
+      ctx.stroke();
+
+      // 4) protective shield ring around the head (pulses)
+      shield *= 0.94;
+      const ringR = R * 1.45;
+      ctx.strokeStyle = `rgba(${ACCENT}, ${(0.12 + shield * 0.5).toFixed(3)})`;
+      ctx.lineWidth = 1 + shield * 2;
+      ctx.beginPath();
+      ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
+      ctx.stroke();
+      // dashed inner ring rotating
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(time);
+      ctx.strokeStyle = `rgba(${ACCENT}, 0.10)`;
+      ctx.setLineDash([6, 10]);
+      ctx.beginPath();
+      ctx.arc(0, 0, ringR - 10, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+
+      // 5) incoming attacks intercepted by the shield
+      const maxArcs = Math.round(5 * density) + 3;
+      if (frame % 26 === 0 && arcs.length < maxArcs) spawnArc();
       arcs = arcs.filter((arc) => {
-        const a = pts[arc.from], b = pts[arc.to];
-        if (!a || !b) return false;
         arc.t += arc.sp;
-        const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
-        const lift = Math.hypot(b.x - a.x, b.y - a.y) * 0.22;
-        const c = { x: mx, y: my - lift };
+        const d = arc.dist * (1 - arc.t);
+        const x = cx + Math.cos(arc.ang) * d;
+        const y = cy + Math.sin(arc.ang) * d;
 
-        ctx.strokeStyle = `rgba(${arc.hue}, 0.10)`;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(a.x, a.y);
-        ctx.quadraticCurveTo(c.x, c.y, b.x, b.y);
-        ctx.stroke();
-
-        const t = Math.min(arc.t, 1);
-        const t0 = Math.max(0, t - 0.12);
-        const s = qp(a, c, b, t0), e = qp(a, c, b, t);
-        const g = ctx.createLinearGradient(s.x, s.y, e.x, e.y);
+        // trail
+        const tx = cx + Math.cos(arc.ang) * (d + 26);
+        const ty = cy + Math.sin(arc.ang) * (d + 26);
+        const g = ctx.createLinearGradient(tx, ty, x, y);
         g.addColorStop(0, `rgba(${arc.hue}, 0)`);
         g.addColorStop(1, `rgba(${arc.hue}, 0.9)`);
         ctx.strokeStyle = g;
         ctx.lineWidth = 1.8;
         ctx.beginPath();
-        ctx.moveTo(s.x, s.y);
-        for (let i = 1; i <= 8; i++) {
-          const pnt = qp(a, c, b, t0 + ((t - t0) * i) / 8);
-          ctx.lineTo(pnt.x, pnt.y);
-        }
+        ctx.moveTo(tx, ty);
+        ctx.lineTo(x, y);
         ctx.stroke();
 
-        const glow = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, 7);
+        const glow = ctx.createRadialGradient(x, y, 0, x, y, 6);
         glow.addColorStop(0, `rgba(${arc.hue}, 1)`);
         glow.addColorStop(1, `rgba(${arc.hue}, 0)`);
         ctx.fillStyle = glow;
         ctx.beginPath();
-        ctx.arc(e.x, e.y, 7, 0, Math.PI * 2);
+        ctx.arc(x, y, 6, 0, Math.PI * 2);
         ctx.fill();
 
-        if (t >= 1) {
-          ctx.strokeStyle = `rgba(${arc.hue}, 0.5)`;
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
-          ctx.stroke();
+        // hit the shield -> block + spark
+        if (d <= ringR && !arc.blocked) {
+          arc.blocked = true;
+          shield = 1;
+          for (let i = 0; i < 6; i++) {
+            const sa = arc.ang + (Math.random() - 0.5) * 1.2;
+            const sl = 8 + Math.random() * 12;
+            ctx.strokeStyle = `rgba(${GREEN}, 0.7)`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + Math.cos(sa) * sl, y + Math.sin(sa) * sl);
+            ctx.stroke();
+          }
+          return false; // blocked, remove
         }
-        return arc.t < 1.05;
+        return arc.t < 1;
       });
-
-      // 4) slow scan sweep
-      scan += 0.6 * speed;
-      if (scan > h) scan = 0;
-      const sg = ctx.createLinearGradient(0, scan - 40, 0, scan + 40);
-      sg.addColorStop(0, `rgba(${ACCENT}, 0)`);
-      sg.addColorStop(0.5, `rgba(${ACCENT}, 0.06)`);
-      sg.addColorStop(1, `rgba(${ACCENT}, 0)`);
-      ctx.fillStyle = sg;
-      ctx.fillRect(0, scan - 40, w, 80);
-      ctx.strokeStyle = `rgba(${ACCENT}, 0.12)`;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(0, scan);
-      ctx.lineTo(w, scan);
-      ctx.stroke();
-
-      // 5) occasional glitch flicker bars
-      if (glitch > 0) {
-        for (let i = 0; i < 3; i++) {
-          const gy = Math.random() * h;
-          ctx.fillStyle = `rgba(${Math.random() > 0.5 ? RED : ACCENT}, 0.07)`;
-          ctx.fillRect(0, gy, w, 1 + Math.random() * 2);
-        }
-        glitch--;
-      } else if (Math.random() > 0.992) {
-        glitch = 4 + ((Math.random() * 5) | 0);
-      }
 
       raf = requestAnimationFrame(draw);
     };
@@ -216,24 +251,17 @@ export default function MatrixRain({
     } else {
       running = false;
       ctx.clearRect(0, 0, w, h);
-      for (const p of pts) {
-        ctx.fillStyle = `rgba(${ACCENT}, 0.4)`;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 1.6, 0, Math.PI * 2);
-        ctx.fill();
-      }
+      ctx.strokeStyle = `rgba(${ACCENT}, 0.15)`;
+      ctx.beginPath();
+      ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.stroke();
     }
 
     const onResize = () => setup();
     const onVis = () => {
       const shouldRun = !document.hidden && !reduced;
-      if (shouldRun && !running) {
-        running = true;
-        draw();
-      } else if (!shouldRun) {
-        running = false;
-        cancelAnimationFrame(raf);
-      }
+      if (shouldRun && !running) { running = true; draw(); }
+      else if (!shouldRun) { running = false; cancelAnimationFrame(raf); }
     };
     window.addEventListener("resize", onResize);
     document.addEventListener("visibilitychange", onVis);
