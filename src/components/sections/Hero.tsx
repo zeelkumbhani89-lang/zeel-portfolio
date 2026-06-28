@@ -106,7 +106,9 @@ export default function Hero() {
           initial={{ opacity: 0, scale: 0.92 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.9, delay: 0.2 }}
-          className="relative mx-auto hidden w-full max-w-md lg:block"
+          // className="relative mx-auto hidden w-full max-w-md lg:block"
+          className="relative mx-auto w-full max-w-xs lg:max-w-md mt-8 lg:mt-0"
+
         >
           {/* rotating ring */}
           <div className="absolute left-1/2 top-1/2 -z-10 h-[460px] w-[460px] -translate-x-1/2 -translate-y-1/2 animate-spin-slow">
