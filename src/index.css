@@ -192,3 +192,17 @@
     scroll-behavior: auto !important;
   }
 }
+.terminal-scan::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(56, 189, 248, 0.03) 0px,
+    rgba(56, 189, 248, 0.03) 1px,
+    transparent 2px,
+    transparent 4px
+  );
+  z-index: 1;
+}
