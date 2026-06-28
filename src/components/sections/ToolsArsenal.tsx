@@ -28,7 +28,7 @@ function runCommand(raw: string): Line[] {
 
   if (lower === "help")
     return [
-      { text: "Available commands:", cls: "text-primary" },
+      { text: "⚡ Available commands:", cls: "text-primary" },
       { text: "  help      → show this menu" },
       { text: "  whoami    → who am I" },
       { text: "  ls        → list available tools" },
@@ -40,74 +40,106 @@ function runCommand(raw: string): Line[] {
       { text: "  clear     → clear the screen" },
     ];
   if (lower === "whoami")
-    return [{ text: "cybersecurity-consultant", cls: "text-green-400" }];
+    return [{ text: "👤 cybersecurity-consultant", cls: "text-green-400" }];
   if (lower === "ls" || lower.startsWith("ls ")) {
-    const out: Line[] = [{ text: "tools/", cls: "text-primary" }];
+    const out: Line[] = [{ text: "🛠️  tools/", cls: "text-primary" }];
     tools.forEach((t) => out.push({ text: `  ${t.name.padEnd(18, " ")} ${t.use}` }));
     return out;
   }
   if (lower === "about")
     return [
-      { text: "Zeel Kumbhani — Cybersecurity Consultant & Founder of CyberNexora.", cls: "text-foreground" },
-      { text: "Surat, Gujarat · serving India & worldwide." },
-      { text: "Focus: manual VAPT, real exploitation, clear reports." },
+      { text: "🛡️  Zeel Kumbhani — Cybersecurity Consultant & Founder of CyberNexora.", cls: "text-foreground" },
+      { text: "📍 Surat, Gujarat · serving India & worldwide." },
+      { text: "🎯 Focus: manual VAPT, real exploitation, clear reports." },
     ];
   if (lower === "services")
     return [
-      { text: "Web VAPT · Network VAPT · API VAPT · Mobile VAPT", cls: "text-foreground" },
-      { text: "Malware recovery · Incident response · Awareness training" },
-      { text: "Type 'contact' to get started." },
+      { text: "🔍 Web VAPT · Network VAPT · API VAPT · Mobile VAPT", cls: "text-foreground" },
+      { text: "🧰 Malware recovery · Incident response · Awareness training" },
+      { text: "📩 Type 'contact' to get started." },
     ];
   if (lower === "contact")
     return [
-      { text: "email   : zeel@cybernexora.com", cls: "text-green-400" },
-      { text: "site    : zeelkumbhani.com" },
-      { text: "Book a consultation from the menu above." },
+      { text: "📧 email   : zeel@cybernexora.com", cls: "text-green-400" },
+      { text: "🌐 site    : zeelkumbhani.com" },
+      { text: "📅 Book a consultation from the menu above." },
     ];
   if (lower === "nmap" || lower.startsWith("nmap "))
     return [
-      { text: "Starting Nmap scan ...", cls: "text-muted-foreground" },
+      { text: "📡 Starting Nmap scan ...", cls: "text-muted-foreground" },
       { text: "PORT     STATE  SERVICE", cls: "text-primary" },
       { text: "22/tcp   open   ssh" },
       { text: "80/tcp   open   http" },
       { text: "443/tcp  open   https" },
-      { text: "Scan complete · 3 open ports found", cls: "text-green-400" },
+      { text: "✅ Scan complete · 3 open ports found", cls: "text-green-400" },
     ];
   if (lower === "scan")
     return [
-      { text: "[*] Enumerating target ...", cls: "text-muted-foreground" },
-      { text: "[*] Testing OWASP Top 10 (manual) ...", cls: "text-muted-foreground" },
-      { text: "[!] Possible IDOR on /api/v1/orders", cls: "text-amber-400" },
-      { text: "[+] Validated with PoC · risk: HIGH", cls: "text-amber-400" },
-      { text: "[✓] Report generated · 0 false positives", cls: "text-green-400" },
+      { text: "🔎 [*] Enumerating target ...", cls: "text-muted-foreground" },
+      { text: "🧪 [*] Testing OWASP Top 10 (manual) ...", cls: "text-muted-foreground" },
+      { text: "⚠️  [!] Possible IDOR on /api/v1/orders", cls: "text-amber-400" },
+      { text: "🎯 [+] Validated with PoC · risk: HIGH", cls: "text-amber-400" },
+      { text: "✅ [✓] Report generated · 0 false positives", cls: "text-green-400" },
     ];
   if (lower === "clear") return [{ text: "__CLEAR__" }];
   if (lower === "sudo" || lower.startsWith("sudo "))
-    return [{ text: "Nice try 😏 — authorised testing only.", cls: "text-amber-400" }];
+    return [{ text: "😏 Nice try — authorised testing only.", cls: "text-amber-400" }];
+  if (lower === "hack" || lower.startsWith("hack "))
+    return [
+      { text: "👨‍💻 Initiating elite hacker mode ...", cls: "text-primary" },
+      { text: "🧠 Just kidding — I only do ethical, authorised work. 😎", cls: "text-green-400" },
+    ];
+  if (lower === "exit" || lower === "quit")
+    return [{ text: "🔒 Session locked. Stay secure! 🛡️", cls: "text-primary" }];
+  if (lower === "ping")
+    return [{ text: "🏓 pong — you're online & secure ✅", cls: "text-green-400" }];
+
+  // unknown / random command -> playful hacker replies
+  const jokes = [
+    "🤖 command not recognised — even my AI is confused.",
+    "💀 nope, that's not in my arsenal.",
+    "🕵️ hmm, no such command. type 'help' to see what I can do.",
+    "⚡ access denied — try 'help' instead. 😏",
+    "👾 unknown command. nice try though, hacker. 😎",
+  ];
   return [
-    { text: `command not found: ${cmd}`, cls: "text-red-400" },
-    { text: "type 'help' to see available commands.", cls: "text-muted-foreground" },
+    { text: `${jokes[(Math.random() * jokes.length) | 0]}`, cls: "text-red-400" },
+    { text: "💡 type 'help' to see available commands.", cls: "text-muted-foreground" },
   ];
 }
 
-// short beep using Web Audio (no files needed)
+// mechanical keyboard "click" using Web Audio (no files needed)
 function useBeep() {
   const ctxRef = useRef<AudioContext | null>(null);
-  return useCallback((on: boolean) => {
-    if (!on) return;
+  return useCallback(() => {
     try {
       if (!ctxRef.current)
         ctxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
       const ac = ctxRef.current;
+      const now = ac.currentTime;
+
       const o = ac.createOscillator();
       const g = ac.createGain();
       o.type = "square";
-      o.frequency.value = 520 + Math.random() * 120;
-      g.gain.value = 0.015;
+      o.frequency.setValueAtTime(180 + Math.random() * 80, now);
+      o.frequency.exponentialRampToValueAtTime(60, now + 0.03);
+      g.gain.setValueAtTime(0.06, now);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
       o.connect(g);
       g.connect(ac.destination);
-      o.start();
-      o.stop(ac.currentTime + 0.012);
+      o.start(now);
+      o.stop(now + 0.05);
+
+      const o2 = ac.createOscillator();
+      const g2 = ac.createGain();
+      o2.type = "triangle";
+      o2.frequency.setValueAtTime(2200 + Math.random() * 600, now);
+      g2.gain.setValueAtTime(0.03, now);
+      g2.gain.exponentialRampToValueAtTime(0.0001, now + 0.02);
+      o2.connect(g2);
+      g2.connect(ac.destination);
+      o2.start(now);
+      o2.stop(now + 0.03);
     } catch {
       /* ignore */
     }
@@ -118,19 +150,17 @@ export default function ToolsArsenal() {
   const [history, setHistory] = useState<Line[]>([]);
   const [input, setInput] = useState("");
   const [booted, setBooted] = useState(false);
-  const [soundOn, setSoundOn] = useState(false);
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const beep = useBeep();
 
-  // boot sequence (auto types) on first view
   useEffect(() => {
     const boot: Line[] = [
       { text: "[ booting CyberNexora secure shell ]", cls: "text-primary" },
       { text: "loading modules ... ok", cls: "text-muted-foreground" },
       { text: "auth: key accepted ✓", cls: "text-green-400" },
       { text: `${PROMPT} whoami` },
-      { text: "cybersecurity-consultant", cls: "text-green-400" },
+      { text: "👤 cybersecurity-consultant", cls: "text-green-400" },
       { text: `${PROMPT} cat ./focus.txt` },
       { text: "manual VAPT · real exploitation · clear reports" },
       { text: "type 'help' to begin ▸", cls: "text-muted-foreground" },
@@ -183,15 +213,6 @@ export default function ToolsArsenal() {
                 <span className="ml-3 flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
                   <Terminal size={12} /> zeel@cybernexora: ~
                 </span>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSoundOn((s) => !s);
-                  }}
-                  className="ml-auto font-mono text-[10px] text-muted-foreground transition-colors hover:text-primary"
-                >
-                  {soundOn ? "🔊 sound on" : "🔇 sound off"}
-                </button>
               </div>
 
               <div
@@ -220,7 +241,7 @@ export default function ToolsArsenal() {
                       value={input}
                       onChange={(e) => {
                         setInput(e.target.value);
-                        beep(soundOn);
+                        beep();
                       }}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
