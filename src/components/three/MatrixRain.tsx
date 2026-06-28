@@ -1,10 +1,9 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Professional cyber network background:
- * slow-drifting nodes + connecting lines + glowing "data pulses"
- * that travel along the links. Subtle, premium, hacker-grade.
- * Same component name + props, so it works everywhere already used.
+ * Live cyber "threat map" background — a stylised world dotted with city nodes,
+ * with glowing attack arcs constantly travelling between them. CrowdStrike-style.
+ * Same component name + props, so it drops in everywhere it's already used.
  */
 export default function MatrixRain({
   className = "",
@@ -27,17 +26,30 @@ export default function MatrixRain({
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+    // Approx world map as normalised "city" hubs (x:0-1, y:0-1)
+    const CITIES: [number, number][] = [
+      [0.12, 0.34], [0.17, 0.42], [0.22, 0.30], [0.27, 0.55], // Americas
+      [0.30, 0.68], [0.33, 0.40], [0.20, 0.50],
+      [0.47, 0.30], [0.50, 0.38], [0.52, 0.26], [0.55, 0.45], // Europe/Africa
+      [0.49, 0.55], [0.53, 0.62],
+      [0.62, 0.36], [0.68, 0.42], [0.72, 0.33], [0.66, 0.50], // Asia
+      [0.74, 0.55], [0.78, 0.40], [0.82, 0.60], [0.70, 0.28], // Asia/Oceania
+      [0.84, 0.66], [0.60, 0.30], [0.58, 0.52],
+    ];
+
     let w = 0;
     let h = 0;
     let raf = 0;
     let running = true;
+    let frame = 0;
 
-    type Node = { x: number; y: number; vx: number; vy: number };
-    type Pulse = { a: number; b: number; t: number; sp: number };
-    let nodes: Node[] = [];
-    let pulses: Pulse[] = [];
+    type Arc = { from: number; to: number; t: number; sp: number; hue: string };
+    let arcs: Arc[] = [];
+    let pts: { x: number; y: number }[] = [];
 
-    const LINK = 150;
+    const ACCENT = color;
+    const RED = "248, 113, 113";
+    const VIOLET = "139, 92, 246";
 
     const setup = () => {
       const parent = canvas.parentElement;
@@ -49,92 +61,109 @@ export default function MatrixRain({
       canvas.style.width = w + "px";
       canvas.style.height = h + "px";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-      const count = Math.max(12, Math.round((w * h) / 32000 * density));
-      nodes = Array.from({ length: count }, () => ({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        vx: (Math.random() - 0.5) * 0.18 * speed,
-        vy: (Math.random() - 0.5) * 0.18 * speed,
-      }));
-      pulses = [];
+      pts = CITIES.map(([nx, ny]) => ({ x: nx * w, y: ny * h }));
+      arcs = [];
     };
 
-    const spawnPulse = () => {
-      if (nodes.length < 2) return;
-      const a = (Math.random() * nodes.length) | 0;
-      // pick a nearby node as target
-      let b = -1;
-      let best = LINK;
-      for (let j = 0; j < nodes.length; j++) {
-        if (j === a) continue;
-        const d = Math.hypot(nodes[a].x - nodes[j].x, nodes[a].y - nodes[j].y);
-        if (d < best) {
-          best = d;
-          b = j;
-        }
-      }
-      if (b >= 0) pulses.push({ a, b, t: 0, sp: 0.012 + Math.random() * 0.02 });
+    const spawnArc = () => {
+      if (pts.length < 2) return;
+      const from = (Math.random() * pts.length) | 0;
+      let to = (Math.random() * pts.length) | 0;
+      if (to === from) to = (to + 1) % pts.length;
+      const palette = [ACCENT, ACCENT, ACCENT, RED, VIOLET];
+      const hue = palette[(Math.random() * palette.length) | 0];
+      arcs.push({ from, to, t: 0, sp: (0.006 + Math.random() * 0.012) * speed, hue });
     };
 
-    let frame = 0;
     const draw = () => {
       if (!running) return;
       ctx.clearRect(0, 0, w, h);
       frame++;
 
-      // move nodes
-      for (const n of nodes) {
-        n.x += n.vx;
-        n.y += n.vy;
-        if (n.x < 0 || n.x > w) n.vx *= -1;
-        if (n.y < 0 || n.y > h) n.vy *= -1;
-      }
-
-      // links
-      for (let i = 0; i < nodes.length; i++) {
-        for (let j = i + 1; j < nodes.length; j++) {
-          const a = nodes[i];
-          const b = nodes[j];
-          const dist = Math.hypot(a.x - b.x, a.y - b.y);
-          if (dist < LINK) {
-            ctx.strokeStyle = `rgba(${color}, ${0.12 * (1 - dist / LINK)})`;
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(a.x, a.y);
-            ctx.lineTo(b.x, b.y);
-            ctx.stroke();
-          }
-        }
-      }
-
-      // nodes
-      for (const n of nodes) {
-        ctx.fillStyle = `rgba(${color}, 0.6)`;
+      // city dots + soft halo
+      for (const p of pts) {
+        ctx.fillStyle = `rgba(${ACCENT}, 0.5)`;
         ctx.beginPath();
-        ctx.arc(n.x, n.y, 1.6, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, 1.6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = `rgba(${ACCENT}, 0.08)`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      // occasionally spawn a travelling data pulse
-      if (frame % 35 === 0 && pulses.length < 6) spawnPulse();
+      // spawn arcs over time
+      const maxArcs = Math.round(7 * density) + 4;
+      if (frame % 22 === 0 && arcs.length < maxArcs) spawnArc();
 
-      // draw + advance pulses
-      pulses = pulses.filter((p) => {
-        const a = nodes[p.a];
-        const b = nodes[p.b];
+      // draw arcs
+      arcs = arcs.filter((arc) => {
+        const a = pts[arc.from];
+        const b = pts[arc.to];
         if (!a || !b) return false;
-        p.t += p.sp;
-        const x = a.x + (b.x - a.x) * p.t;
-        const y = a.y + (b.y - a.y) * p.t;
-        const glow = ctx.createRadialGradient(x, y, 0, x, y, 6);
-        glow.addColorStop(0, `rgba(${color}, 0.9)`);
-        glow.addColorStop(1, `rgba(${color}, 0)`);
+        arc.t += arc.sp;
+
+        // control point above the midpoint -> curved arc
+        const mx = (a.x + b.x) / 2;
+        const my = (a.y + b.y) / 2;
+        const lift = Math.hypot(b.x - a.x, b.y - a.y) * 0.22;
+        const cx = mx;
+        const cy = my - lift;
+
+        // faint full path
+        ctx.strokeStyle = `rgba(${arc.hue}, 0.10)`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.quadraticCurveTo(cx, cy, b.x, b.y);
+        ctx.stroke();
+
+        // bright travelling segment (the "attack")
+        const t = Math.min(arc.t, 1);
+        const trail = 0.12;
+        const t0 = Math.max(0, t - trail);
+        const qp = (tt: number) => {
+          const u = 1 - tt;
+          return {
+            x: u * u * a.x + 2 * u * tt * cx + tt * tt * b.x,
+            y: u * u * a.y + 2 * u * tt * cy + tt * tt * b.y,
+          };
+        };
+        const s = qp(t0);
+        const e = qp(t);
+        const grad = ctx.createLinearGradient(s.x, s.y, e.x, e.y);
+        grad.addColorStop(0, `rgba(${arc.hue}, 0)`);
+        grad.addColorStop(1, `rgba(${arc.hue}, 0.9)`);
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(s.x, s.y);
+        const steps = 8;
+        for (let i = 1; i <= steps; i++) {
+          const tt = t0 + ((t - t0) * i) / steps;
+          const pnt = qp(tt);
+          ctx.lineTo(pnt.x, pnt.y);
+        }
+        ctx.stroke();
+
+        // glowing head
+        const glow = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, 7);
+        glow.addColorStop(0, `rgba(${arc.hue}, 1)`);
+        glow.addColorStop(1, `rgba(${arc.hue}, 0)`);
         ctx.fillStyle = glow;
         ctx.beginPath();
-        ctx.arc(x, y, 6, 0, Math.PI * 2);
+        ctx.arc(e.x, e.y, 7, 0, Math.PI * 2);
         ctx.fill();
-        return p.t < 1;
+
+        // impact ring when arc lands
+        if (t >= 1) {
+          ctx.strokeStyle = `rgba(${arc.hue}, 0.5)`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        return arc.t < 1.05;
       });
 
       raf = requestAnimationFrame(draw);
@@ -144,12 +173,13 @@ export default function MatrixRain({
     if (!reduced) {
       draw();
     } else {
+      // static frame
       running = false;
       ctx.clearRect(0, 0, w, h);
-      for (const n of nodes) {
-        ctx.fillStyle = `rgba(${color}, 0.35)`;
+      for (const p of pts) {
+        ctx.fillStyle = `rgba(${ACCENT}, 0.4)`;
         ctx.beginPath();
-        ctx.arc(n.x, n.y, 1.6, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, 1.6, 0, Math.PI * 2);
         ctx.fill();
       }
     }
