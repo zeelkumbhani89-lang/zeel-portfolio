@@ -1,9 +1,9 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Lightweight canvas "code rain" — gives a subtle hacker ambience behind
- * page headers and sections without the cost of WebGL. Respects reduced-motion
- * and pauses when offscreen / tab hidden.
+ * Animated network / constellation background.
+ * Floating nodes connect with lines when near each other — subtle hacker vibe.
+ * Same component name + props as before, so it works everywhere it's already used.
  */
 export default function MatrixRain({
   className = "",
@@ -26,47 +26,70 @@ export default function MatrixRain({
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    const chars = "01<>/{}[]#$%&*+=ABCDEF0123456789アイウエオカ".split("");
-    let cols = 0;
-    let drops: number[] = [];
-    let fontSize = 14;
+    let w = 0;
+    let h = 0;
     let raf = 0;
     let running = true;
+    let nodes: { x: number; y: number; vx: number; vy: number }[] = [];
 
     const setup = () => {
       const parent = canvas.parentElement;
-      const w = parent?.clientWidth ?? window.innerWidth;
-      const h = parent?.clientHeight ?? 400;
+      w = parent?.clientWidth ?? window.innerWidth;
+      h = parent?.clientHeight ?? 400;
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = w * dpr;
       canvas.height = h * dpr;
       canvas.style.width = w + "px";
       canvas.style.height = h + "px";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      fontSize = Math.max(12, Math.round(w / 90));
-      cols = Math.floor((w / fontSize) * density);
-      drops = Array.from({ length: cols }, () => Math.random() * (h / fontSize));
+
+      const count = Math.max(14, Math.round((w * h) / 26000 * density));
+      nodes = Array.from({ length: count }, () => ({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        vx: (Math.random() - 0.5) * 0.4 * speed,
+        vy: (Math.random() - 0.5) * 0.4 * speed,
+      }));
     };
 
     const draw = () => {
       if (!running) return;
-      const w = canvas.clientWidth;
-      const h = canvas.clientHeight;
-      ctx.fillStyle = "rgba(5, 7, 13, 0.08)";
-      ctx.fillRect(0, 0, w, h);
-      ctx.font = `${fontSize}px monospace`;
-      for (let i = 0; i < cols; i++) {
-        const x = (i / density) * fontSize;
-        const y = drops[i] * fontSize;
-        const ch = chars[(Math.random() * chars.length) | 0];
-        const lead = Math.random() > 0.975;
-        ctx.fillStyle = lead
-          ? `rgba(${color}, 0.9)`
-          : `rgba(${color}, ${0.18 + Math.random() * 0.18})`;
-        ctx.fillText(ch, x, y);
-        if (y > h && Math.random() > 0.975) drops[i] = 0;
-        drops[i] += 0.5 * speed;
+      ctx.clearRect(0, 0, w, h);
+
+      for (const n of nodes) {
+        n.x += n.vx;
+        n.y += n.vy;
+        if (n.x < 0 || n.x > w) n.vx *= -1;
+        if (n.y < 0 || n.y > h) n.vy *= -1;
       }
+
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const a = nodes[i];
+          const b = nodes[j];
+          const dist = Math.hypot(a.x - b.x, a.y - b.y);
+          if (dist < 130) {
+            ctx.strokeStyle = `rgba(${color}, ${0.16 * (1 - dist / 130)})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      for (const n of nodes) {
+        ctx.fillStyle = `rgba(${color}, 0.7)`;
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, 1.7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = `rgba(${color}, 0.12)`;
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
       raf = requestAnimationFrame(draw);
     };
 
@@ -74,18 +97,26 @@ export default function MatrixRain({
     if (!reduced) {
       draw();
     } else {
-      // static faint frame for reduced-motion users
-      ctx.font = `${fontSize}px monospace`;
-      for (let i = 0; i < cols; i++) {
-        ctx.fillStyle = `rgba(${color}, 0.12)`;
-        ctx.fillText(chars[(Math.random() * chars.length) | 0], (i / density) * fontSize, Math.random() * canvas.clientHeight);
+      running = false;
+      ctx.clearRect(0, 0, w, h);
+      for (const n of nodes) {
+        ctx.fillStyle = `rgba(${color}, 0.4)`;
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, 1.7, 0, Math.PI * 2);
+        ctx.fill();
       }
     }
 
     const onResize = () => setup();
     const onVis = () => {
-      running = !document.hidden && !reduced;
-      if (running) draw();
+      const shouldRun = !document.hidden && !reduced;
+      if (shouldRun && !running) {
+        running = true;
+        draw();
+      } else if (!shouldRun) {
+        running = false;
+        cancelAnimationFrame(raf);
+      }
     };
     window.addEventListener("resize", onResize);
     document.addEventListener("visibilitychange", onVis);
