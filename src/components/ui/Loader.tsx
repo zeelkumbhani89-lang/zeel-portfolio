@@ -45,7 +45,9 @@ export default function Loader() {
           >
             <div className="absolute inset-0 animate-spin-slow rounded-full border border-primary/20" />
             <div className="glass-card cyber-glow flex h-24 w-24 items-center justify-center rounded-2xl">
-              <ShieldCheck className="text-primary" size={40} />
+              {/* <ShieldCheck className="text-primary" size={40} /> */}
+            <img src="/images/logo-shield.png" alt="Zeel Kumbhani" className="h-14 w-14 object-contain" />
+
             </div>
           </motion.div>
 
