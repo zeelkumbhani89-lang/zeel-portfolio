@@ -1,9 +1,10 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Animated network / constellation background.
- * Floating nodes connect with lines when near each other — subtle hacker vibe.
- * Same component name + props as before, so it works everywhere it's already used.
+ * Professional cyber network background:
+ * slow-drifting nodes + connecting lines + glowing "data pulses"
+ * that travel along the links. Subtle, premium, hacker-grade.
+ * Same component name + props, so it works everywhere already used.
  */
 export default function MatrixRain({
   className = "",
@@ -30,7 +31,13 @@ export default function MatrixRain({
     let h = 0;
     let raf = 0;
     let running = true;
-    let nodes: { x: number; y: number; vx: number; vy: number }[] = [];
+
+    type Node = { x: number; y: number; vx: number; vy: number };
+    type Pulse = { a: number; b: number; t: number; sp: number };
+    let nodes: Node[] = [];
+    let pulses: Pulse[] = [];
+
+    const LINK = 150;
 
     const setup = () => {
       const parent = canvas.parentElement;
@@ -43,19 +50,40 @@ export default function MatrixRain({
       canvas.style.height = h + "px";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      const count = Math.max(14, Math.round((w * h) / 26000 * density));
+      const count = Math.max(12, Math.round((w * h) / 32000 * density));
       nodes = Array.from({ length: count }, () => ({
         x: Math.random() * w,
         y: Math.random() * h,
-        vx: (Math.random() - 0.5) * 0.4 * speed,
-        vy: (Math.random() - 0.5) * 0.4 * speed,
+        vx: (Math.random() - 0.5) * 0.18 * speed,
+        vy: (Math.random() - 0.5) * 0.18 * speed,
       }));
+      pulses = [];
     };
 
+    const spawnPulse = () => {
+      if (nodes.length < 2) return;
+      const a = (Math.random() * nodes.length) | 0;
+      // pick a nearby node as target
+      let b = -1;
+      let best = LINK;
+      for (let j = 0; j < nodes.length; j++) {
+        if (j === a) continue;
+        const d = Math.hypot(nodes[a].x - nodes[j].x, nodes[a].y - nodes[j].y);
+        if (d < best) {
+          best = d;
+          b = j;
+        }
+      }
+      if (b >= 0) pulses.push({ a, b, t: 0, sp: 0.012 + Math.random() * 0.02 });
+    };
+
+    let frame = 0;
     const draw = () => {
       if (!running) return;
       ctx.clearRect(0, 0, w, h);
+      frame++;
 
+      // move nodes
       for (const n of nodes) {
         n.x += n.vx;
         n.y += n.vy;
@@ -63,13 +91,14 @@ export default function MatrixRain({
         if (n.y < 0 || n.y > h) n.vy *= -1;
       }
 
+      // links
       for (let i = 0; i < nodes.length; i++) {
         for (let j = i + 1; j < nodes.length; j++) {
           const a = nodes[i];
           const b = nodes[j];
           const dist = Math.hypot(a.x - b.x, a.y - b.y);
-          if (dist < 130) {
-            ctx.strokeStyle = `rgba(${color}, ${0.16 * (1 - dist / 130)})`;
+          if (dist < LINK) {
+            ctx.strokeStyle = `rgba(${color}, ${0.12 * (1 - dist / LINK)})`;
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(a.x, a.y);
@@ -79,16 +108,34 @@ export default function MatrixRain({
         }
       }
 
+      // nodes
       for (const n of nodes) {
-        ctx.fillStyle = `rgba(${color}, 0.7)`;
+        ctx.fillStyle = `rgba(${color}, 0.6)`;
         ctx.beginPath();
-        ctx.arc(n.x, n.y, 1.7, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = `rgba(${color}, 0.12)`;
-        ctx.beginPath();
-        ctx.arc(n.x, n.y, 5, 0, Math.PI * 2);
+        ctx.arc(n.x, n.y, 1.6, 0, Math.PI * 2);
         ctx.fill();
       }
+
+      // occasionally spawn a travelling data pulse
+      if (frame % 35 === 0 && pulses.length < 6) spawnPulse();
+
+      // draw + advance pulses
+      pulses = pulses.filter((p) => {
+        const a = nodes[p.a];
+        const b = nodes[p.b];
+        if (!a || !b) return false;
+        p.t += p.sp;
+        const x = a.x + (b.x - a.x) * p.t;
+        const y = a.y + (b.y - a.y) * p.t;
+        const glow = ctx.createRadialGradient(x, y, 0, x, y, 6);
+        glow.addColorStop(0, `rgba(${color}, 0.9)`);
+        glow.addColorStop(1, `rgba(${color}, 0)`);
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, Math.PI * 2);
+        ctx.fill();
+        return p.t < 1;
+      });
 
       raf = requestAnimationFrame(draw);
     };
@@ -100,9 +147,9 @@ export default function MatrixRain({
       running = false;
       ctx.clearRect(0, 0, w, h);
       for (const n of nodes) {
-        ctx.fillStyle = `rgba(${color}, 0.4)`;
+        ctx.fillStyle = `rgba(${color}, 0.35)`;
         ctx.beginPath();
-        ctx.arc(n.x, n.y, 1.7, 0, Math.PI * 2);
+        ctx.arc(n.x, n.y, 1.6, 0, Math.PI * 2);
         ctx.fill();
       }
     }
