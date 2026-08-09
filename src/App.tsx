@@ -5,13 +5,14 @@ import { ScrollToTop } from "@/components/layout/Layout";
 import Loader from "@/components/ui/Loader";
 import Home from "@/pages/Home";
 
-const Reels = lazy(() => import("@/pages/Reels"));
 const Services = lazy(() => import("@/pages/Services"));
 const ProductSecurity = lazy(() => import("@/pages/ProductSecurity"));
+const Compliance = lazy(() => import("@/pages/Compliance"));
+const ComplianceDetail = lazy(() => import("@/pages/ComplianceDetail"));
 const IndustrySolutions = lazy(() => import("@/pages/IndustrySolutions"));
 const Projects = lazy(() => import("@/pages/Projects"));
 const ProjectDetail = lazy(() => import("@/pages/ProjectDetail"));
-const Activities = lazy(() => import("@/pages/Activities"));
+const Reels = lazy(() => import("@/pages/Reels"));
 const Community = lazy(() => import("@/pages/Community"));
 const Contact = lazy(() => import("@/pages/Contact"));
 const BookConsultation = lazy(() => import("@/pages/BookConsultation"));
@@ -36,10 +37,11 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/services" element={<Services />} />
             <Route path="/product-security" element={<ProductSecurity />} />
+            <Route path="/compliance" element={<Compliance />} />
+            <Route path="/compliance/:slug" element={<ComplianceDetail />} />
             <Route path="/industry-solutions" element={<IndustrySolutions />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/projects/:slug" element={<ProjectDetail />} />
-            <Route path="/activities" element={<Activities />} />
             <Route path="/reels" element={<Reels />} />
             <Route path="/community" element={<Community />} />
             <Route path="/contact" element={<Contact />} />

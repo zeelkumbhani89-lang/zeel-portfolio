@@ -13,7 +13,6 @@ import {
   ServicesPreview,
   IndustriesPreview,
   ProjectsPreview,
-  ActivitiesPreview,
   CtaSection,
 } from "@/components/sections/HomePreviews";
 import { siteConfig } from "@/lib/site";
@@ -103,7 +102,6 @@ export default function Home() {
       <ServicesPreview />
       <IndustriesPreview />
       <ProjectsPreview />
-      <ActivitiesPreview />
       <Faqs faqs={generalFaqs} />
       <CtaSection />
     </Layout>

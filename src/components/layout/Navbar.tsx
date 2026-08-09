@@ -58,7 +58,7 @@ export default function Navbar() {
                 to={link.path}
                 className={({ isActive }: { isActive: boolean }) =>
                   cn(
-                    "rounded-lg px-3.5 py-2 text-sm font-medium transition-colors",
+                    "rounded-lg px-3.5 py-2 text-sm font-medium whitespace-nowrap transition-colors",
                     isActive
                       ? "text-primary"
                       : "text-muted-foreground hover:text-foreground"

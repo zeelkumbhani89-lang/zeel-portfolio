@@ -21,10 +21,10 @@ export const siteConfig = {
 export const navLinks = [
   { label: "Home", path: "/" },
   { label: "Services", path: "/services" },
-  { label: "Product Security", path: "/product-security" },
+  { label: "Products", path: "/product-security" },
+  { label: "Compliance", path: "/compliance" },
   { label: "Industries", path: "/industry-solutions" },
   { label: "Projects", path: "/projects" },
-  { label: "Activities", path: "/activities" },
   { label: "Reels", path: "/reels" },
   { label: "Community", path: "/community" },
   { label: "Contact", path: "/contact" },
