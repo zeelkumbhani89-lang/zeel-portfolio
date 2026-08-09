@@ -24,6 +24,7 @@ export const navLinks = [
   { label: "Industries", path: "/industry-solutions" },
   { label: "Projects", path: "/projects" },
   { label: "Activities", path: "/activities" },
+  { label: "Reels", path: "/reels" },
   { label: "Community", path: "/community" },
   { label: "Contact", path: "/contact" },
 ];

@@ -5,6 +5,7 @@ import { ScrollToTop } from "@/components/layout/Layout";
 import Loader from "@/components/ui/Loader";
 import Home from "@/pages/Home";
 
+const Reels = lazy(() => import("@/pages/Reels"));
 const Services = lazy(() => import("@/pages/Services"));
 const IndustrySolutions = lazy(() => import("@/pages/IndustrySolutions"));
 const Projects = lazy(() => import("@/pages/Projects"));
@@ -37,6 +38,7 @@ export default function App() {
             <Route path="/projects" element={<Projects />} />
             <Route path="/projects/:slug" element={<ProjectDetail />} />
             <Route path="/activities" element={<Activities />} />
+            <Route path="/reels" element={<Reels />} />
             <Route path="/community" element={<Community />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/book-consultation" element={<BookConsultation />} />
