@@ -21,6 +21,7 @@ export const siteConfig = {
 export const navLinks = [
   { label: "Home", path: "/" },
   { label: "Services", path: "/services" },
+  { label: "Product Security", path: "/product-security" },
   { label: "Industries", path: "/industry-solutions" },
   { label: "Projects", path: "/projects" },
   { label: "Activities", path: "/activities" },
