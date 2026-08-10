@@ -31,6 +31,11 @@ export interface Reel {
 }
 
 export const reels: Reel[] = [
+    {
+    url: "https://www.instagram.com/reel/Db2G_awsrC7/",
+    title: "Fake shopping websites — ₹5,000 product for ₹500 scam",
+    theme: "Scam Alert",
+  },
   {
     url: "https://www.instagram.com/reel/Daa8aUaNJ2a/",
     title: "Cyber Security Seminar — awareness session highlights",
