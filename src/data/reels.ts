@@ -31,6 +31,21 @@ export interface Reel {
 }
 
 export const reels: Reel[] = [
+    {
+    url: "https://www.instagram.com/reel/DcNZ6Pos1Tx/",
+    title: "Think before you upload — protect your data from misuse",
+    theme: "Personal Safety",
+  },
+   {
+    url: "https://www.instagram.com/reel/DcIt5aIMFYX/",
+    title: "Fake boss scam — photo and name are not proof of identity",
+    theme: "Scam Alert",
+  },
+   {
+    url: "https://www.instagram.com/reel/DcC7G9-M5Fd/",
+    title: "Your data is your identity — protect your digital privacy",
+    theme: "Awareness",
+  },
   {
     url: "https://www.instagram.com/reel/DcAZNugMxHq/",
     title: "AI voice clone scam — a familiar voice is not proof of identity",
