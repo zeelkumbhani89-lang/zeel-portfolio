@@ -32,6 +32,11 @@ export interface Reel {
 
 export const reels: Reel[] = [
   {
+    url: "https://www.instagram.com/reel/DcAZNugMxHq/",
+    title: "AI voice clone scam — a familiar voice is not proof of identity",
+    theme: "AI & Deepfake",
+  },
+  {
     url: "https://www.instagram.com/reel/Db7Qp3xsY-H/",
     title: "Price manipulation — ₹50,000 product sold for ₹1",
     theme: "Business Security",
