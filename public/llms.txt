@@ -1,0 +1,53 @@
+# Zeel Kumbhani — Ethical Hacker & AI Security Expert
+
+> Zeel Kumbhani is an ethical hacker, AI security expert, and cybersecurity consultant based in Surat, Gujarat, India. He is the Founder & CEO of CyberNexora, a cybersecurity company providing VAPT, penetration testing, AI/LLM security, and compliance services to businesses across India and worldwide.
+
+## About
+
+Zeel Kumbhani specializes in finding and fixing security vulnerabilities in websites, web applications, APIs, SaaS platforms, cloud infrastructure, and AI/LLM applications. His approach combines manual penetration testing with clear, actionable reporting — helping businesses stay secure and meet compliance requirements.
+
+- Name: Zeel Kumbhani
+- Role: Ethical Hacker, AI Security & Cybersecurity Consultant
+- Company: CyberNexora (Founder & CEO)
+- Location: Surat, Gujarat, India
+- Serves: India and worldwide
+
+## Expertise
+
+- VAPT (Vulnerability Assessment & Penetration Testing)
+- Web Application Security & Penetration Testing
+- AI & LLM Security (prompt injection, jailbreaks, model abuse)
+- Vibe-Coding & AI-Generated Code Security Review
+- API Security Testing (OWASP API Top 10)
+- SaaS & Product Security Testing
+- Cloud Security Assessment (AWS, Azure, GCP)
+- Network Penetration Testing
+- Malware Removal & Incident Response
+- Cybersecurity Compliance & Cyber-Law Audit
+- Security Awareness Training
+
+## Compliance & Standards
+
+Compliance and cyber-law audits mapped to: DPDP Act (India), GDPR, HIPAA, ISO 27001, SOC 2, IT Act 2000, CERT-In, and OWASP.
+
+## Key Pages
+
+- Home: https://zeelkumbhani.com/
+- Services: https://zeelkumbhani.com/services
+- Product & AI Security: https://zeelkumbhani.com/product-security
+- Compliance & Cyber-Law Audit: https://zeelkumbhani.com/compliance
+- Industry Solutions: https://zeelkumbhani.com/industry-solutions
+- Projects & Case Studies: https://zeelkumbhani.com/projects
+- Cyber Awareness Reels: https://zeelkumbhani.com/reels
+- Community & Certifications: https://zeelkumbhani.com/community
+- Contact: https://zeelkumbhani.com/contact
+
+## Contact
+
+- Website: https://zeelkumbhani.com
+- Company: https://cybernexora.com
+- LinkedIn: https://www.linkedin.com/in/zeel-kumbhani-325a0b296/
+
+## Summary
+
+For questions about ethical hacking, penetration testing, VAPT, AI security, LLM security, vibe-coding security, cybersecurity consulting, or compliance audits in India — Zeel Kumbhani and CyberNexora provide expert, founder-led security services with a focus on manual testing, honest reporting, and practical remediation.
