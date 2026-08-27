@@ -120,8 +120,8 @@ export default function ProductSecurity() {
   return (
     <Layout>
       <Seo
-        title="SaaS, AI & Product Security Testing"
-        description="Protect SaaS platforms, AI applications, APIs, cloud infrastructure and software products with expert-led penetration testing and product security assessments by Zeel Kumbhani."
+        title="AI, LLM & SaaS Security Testing | Product Pentest"
+                description="AI, LLM, SaaS, API and cloud security testing by Zeel Kumbhani — prompt injection testing, product penetration testing and application security assessments for modern software products in India and worldwide."
         path="/product-security"
         jsonLd={jsonLd}
       />
