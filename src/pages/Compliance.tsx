@@ -41,8 +41,8 @@ export default function Compliance() {
   return (
     <Layout>
       <Seo
-        title="Compliance & Cyber-Law Audit — DPDP, GDPR, HIPAA, OWASP"
-        description="Cybersecurity compliance and cyber-law audits by Zeel Kumbhani, mapped to the DPDP Act, GDPR, HIPAA, IT Act 2000, CERT-In, OWASP and ISO — with clear reporting and remediation."
+           title="Compliance Audit — DPDP, GDPR, HIPAA, ISO 27001, SOC 2"
+                description="Cybersecurity compliance and cyber-law audits by Zeel Kumbhani — DPDP Act, GDPR, HIPAA, ISO 27001, SOC 2, IT Act 2000, CERT-In and OWASP — with gap assessment, clear reporting and remediation for businesses in India and worldwide."
         path="/compliance"
         jsonLd={jsonLd}
       />

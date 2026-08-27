@@ -56,8 +56,8 @@ export default function ComplianceDetail() {
   return (
     <Layout>
       <Seo
-        title={`${std.name} Compliance Audit`}
-        description={`${std.name} compliance and security audit by Zeel Kumbhani — ${std.tagline}`}
+        title={`${std.name} Compliance Audit & Gap Assessment`}
+        description={`${std.name} compliance and security audit by Zeel Kumbhani — ${std.tagline}. Gap assessment, remediation and reporting for businesses in India and worldwide.`}
         path={`/compliance/${std.slug}`}
       />
 
