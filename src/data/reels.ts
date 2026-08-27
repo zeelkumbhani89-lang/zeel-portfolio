@@ -31,7 +31,11 @@ export interface Reel {
 }
 
 export const reels: Reel[] = [
-
+  {
+    url: "https://www.instagram.com/reel/DcfQdInMjaa/",
+    title: "Fake app & APK scam — verify before you download",
+    theme: "Scam Alert",
+  },
     {
     url: "https://www.instagram.com/reel/DcNZ6Pos1Tx/",
     title: "Think before you upload — protect your data from misuse",
