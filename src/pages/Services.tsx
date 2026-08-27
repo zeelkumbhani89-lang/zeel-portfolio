@@ -21,8 +21,8 @@ export default function Services() {
   return (
     <Layout>
       <Seo
-        title="Cybersecurity Services — VAPT, Web Security & More"
-        description="Explore Zeel Kumbhani's cybersecurity services: VAPT, web & application security, malware removal, SEO spam recovery, incident response, consulting and awareness training."
+        title="VAPT, Penetration Testing & AI Security Services"
+        description="Cybersecurity services by Zeel Kumbhani: VAPT, penetration testing, AI & LLM security, API & SaaS security, web application security, cloud security, malware removal and incident response — for businesses across India and worldwide."
         path="/services"
         jsonLd={jsonLd}
       />
