@@ -12,8 +12,8 @@ export default function IndustrySolutions() {
   return (
     <Layout>
       <Seo
-        title="Industry Solutions — Cybersecurity by Sector"
-        description="Industry-specific cybersecurity in Surat & Gujarat for healthcare & hospitals, education, the diamond and textile industries, manufacturing, finance & fintech, e-commerce, hospitality, enterprise and startups — VAPT, compliance and security guidance by Zeel Kumbhani."
+        title="Industry Cybersecurity Solutions — VAPT by Sector in India"
+        description="Industry-specific cybersecurity and VAPT by Zeel Kumbhani for healthcare, fintech, e-commerce, SaaS, manufacturing, diamond & textile, education and startups — penetration testing, compliance and security guidance in Surat, Gujarat and across India."
         path="/industry-solutions"
       />
       <PageHeader

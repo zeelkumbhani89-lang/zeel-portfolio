@@ -14,8 +14,8 @@ export default function Projects() {
   return (
     <Layout>
       <Seo
-        title="Projects & Case Studies"
-        description="Ethical cybersecurity case studies by Zeel Kumbhani: WordPress malware recovery, e-commerce security assessment and responsible security research — presented honestly."
+          title="Cybersecurity Projects & VAPT Case Studies"
+                description="Cybersecurity projects and VAPT case studies by Zeel Kumbhani — WordPress malware recovery, e-commerce security assessment, penetration testing and responsible security research, presented honestly."
         path="/projects"
       />
       <PageHeader

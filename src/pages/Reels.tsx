@@ -35,8 +35,8 @@ export default function Reels() {
   return (
     <Layout>
       <Seo
-        title="Cyber Awareness Reels"
-        description="Daily cyber-awareness reels by Zeel Kumbhani - short videos on online scams, AI voice-clone fraud, fake e-commerce, deepfakes and how to stay safe. Watch and share."
+        title="Cyber Awareness Reels — Scams, AI Fraud & Online Safety"
+               description="Cyber awareness reels by Zeel Kumbhani — short videos on online scams, AI voice-clone fraud, fake apps, price manipulation, deepfakes and data privacy. Learn how to stay safe and share with others."
         path="/reels"
       />
       <PageHeader

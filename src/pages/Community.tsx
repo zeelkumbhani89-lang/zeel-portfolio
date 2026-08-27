@@ -14,8 +14,8 @@ export default function Community() {
   return (
     <Layout>
       <Seo
-        title="Community & Certifications"
-        description="Genuine certifications, experience and community participation of Zeel Kumbhani — Cyber Octet, TryHackMe, OWASP API Top 10, AWS Security and GPBO membership."
+                title="Cybersecurity Certifications & Community — Zeel Kumbhani"
+                description="Cybersecurity certifications, training and community participation of Zeel Kumbhani — Cyber Octet, TryHackMe, OWASP API Top 10, AWS Security and ethical hacking learning. Real, verifiable achievements only."
         path="/community"
       />
       <PageHeader
