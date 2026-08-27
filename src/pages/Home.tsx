@@ -2,8 +2,10 @@ import Layout from "@/components/layout/Layout";
 import Seo from "@/components/Seo";
 import Hero from "@/components/sections/Hero";
 import ToolsArsenal from "@/components/sections/ToolsArsenal";
+import VibeCodingSecurity from "@/components/sections/VibeCodingSecurity";
 import Faqs from "@/components/sections/Faqs";
 import { generalFaqs } from "@/data/faqs";
+
 import {
   StatsStrip,
   AboutSection,
@@ -68,9 +70,12 @@ const jsonLd = {
       knowsAbout: [
         "VAPT",
         "Penetration Testing",
+        "AI Security",
+        "LLM Security",
+        "Vibe Coding Security",
         "Web Application Security",
-        "Network Security",
         "API Security",
+        "Cloud Security",
         "Incident Response",
         "Ethical Hacking",
       ],
@@ -89,7 +94,7 @@ export default function Home() {
   return (
     <Layout>
       <Seo
-        title="Cybersecurity Expert in Surat, Gujarat | VAPT & Ethical Hacking"
+          title="Ethical Hacker & AI Security Expert in India | VAPT"
         description={siteConfig.description}
         path="/"
         jsonLd={jsonLd}
@@ -99,6 +104,7 @@ export default function Home() {
       <AboutSection />
       <WhyChooseMe />
       <ToolsArsenal />
+      <VibeCodingSecurity />
       <ServicesPreview />
       <IndustriesPreview />
       <ProjectsPreview />
